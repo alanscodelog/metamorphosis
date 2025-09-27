@@ -3,7 +3,6 @@ name: Release
 env:
   USE_LOCKFILE: ${{ secrets.USE_LOCKFILE }}
   ENABLE_RELEASE: ${{ secrets.ENABLE_RELEASE }}
-  ENABLE_BUILD: ${{ secrets.ENABLE_BUILD }}
 
 on:
   push:
@@ -27,7 +26,6 @@ jobs:
         USE_LOCKFILE: ${{ secrets.USE_LOCKFILE }}
 
     - name: Build 
-      if: "env.ENABLE_BUILD == 'true'"
       uses: ./.github/actions/composite-build
       with:
         USE_LOCKFILE: ${{ secrets.USE_LOCKFILE }}
