@@ -10,3 +10,4 @@ dist
 bin
 !flake.lock
 .direnv
+.devenv/
