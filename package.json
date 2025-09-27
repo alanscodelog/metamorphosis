@@ -28,7 +28,7 @@
 		"lint:types": "tsc --noEmit --pretty",
 		"lint:commits": "commitlint --from-last-tag --to HEAD --verbose",
 		"lint:imports": "madge --circular --extensions ts ./src",
-		"lint": "pnpm lint:eslint",
+		"lint": "pnpm lint:eslint && pnpm lint:types && pnpm lint:commits && pnpm lint:imports",
 		"coverage": "vitest --coverage",
 		"coverage:dev": "vitest --watch --coverage",
 		"test": "vitest run",
