@@ -1,5 +1,4 @@
 **/*.log*
-*lock*
 .vscode
 node_modules
 worktree*/**/*
@@ -8,6 +7,5 @@ coverage
 
 dist
 bin
-!flake.lock
 .direnv
 .devenv/
