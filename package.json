@@ -1,7 +1,7 @@
 {
 	"name": "metamorphosis",
 	"description": "A css variable management library that helps create and organize variables into easily configurable themes.",
-	"version": "0.6.1",
+	"version": "0.6.2",
 	"type": "module",
 	"main": "./dist/index.js",
 	"sideEffects": false,
