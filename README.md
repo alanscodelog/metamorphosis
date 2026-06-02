@@ -1,8 +1,8 @@
 ### 🚧 WORK IN PROGRESS 🚧
-[![Docs](https://github.com/alanscodelog/metamorphosis/workflows/Docs/badge.svg)](https://github.com/alanscodelog/metamorphosis/actions/workflows/docs.yml)
-[![Build](https://github.com/alanscodelog/metamorphosis/actions/workflows/build.yml/badge.svg)](https://github.com/alanscodelog/metamorphosis/actions/workflows/build.yml)
-[![Release](https://github.com/alanscodelog/metamorphosis/actions/workflows/release.yml/badge.svg)](https://github.com/alanscodelog/metamorphosis/actions/workflows/release.yml)
-[NPM Version (with latest tag)](https://img.shields.io/npm/v/metamorphosis/latest)](https://www.npmjs.com/package/metamorphosis/v/latest)
+[![Docs][docs-src]][docs-href]
+[![Release][release-src]][release-href]
+[![npm version][npm-version-src]][npm-version-href]
+[![License][license-src]][license-href]
 
 
 # [Docs](https://alanscodelog.github.io/metamorphosis)
@@ -139,3 +139,12 @@ The library has optional peer dependencies for tailwind and colorjs.io. colorjs.
 
 You can call `themeAsTailwindCss` from `metamorphosis/tailwind.js` to convert a theme into a tailwind v4 theme. Just print the results and copy or save them to a css file as part of your build then import them into your config. This will ensure things look okay (at least with the default theme colors) until the js loads.
 
+<!-- Badges -->
+[docs-src]: https://github.com/alanscodelog/metamorphosis/actions/workflows/docs.yml/badge.svg
+[docs-href]: https://github.com/alanscodelog/metamorphosis/actions/workflows/docs.yml
+[release-src]: https://github.com/alanscodelog/metamorphosis/actions/workflows/release.yml/badge.svg
+[release-href]: https://github.com/alanscodelog/metamorphosis/actions/workflows/release.yml
+[npm-version-src]: https://img.shields.io/npm/v/metamorphosis/latest
+[npm-version-href]: https://www.npmjs.com/package/metamorphosis/v/latest
+[license-src]: https://img.shields.io/npm/l/metamorphosis.svg?style=flat&colorA=020420&colorB=00DC82
+[license-href]: https://npmjs.com/package/metamorphosis
