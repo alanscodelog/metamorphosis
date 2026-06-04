@@ -26,5 +26,7 @@ jobs:
 
       - name: Deploy Docs
         uses: alanscodelog/actions/.github/actions/docs@master
+        with:
+          use_typedoc: "true"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

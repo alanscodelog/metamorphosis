@@ -13,7 +13,7 @@ export default {
 	entryPoints: [
 		"src/**/*.ts"
 	],
-	out: "docs",
+	out: "docs-types",
 	excludePrivate: true,
 	excludeExternals: true,
 	validation: {
