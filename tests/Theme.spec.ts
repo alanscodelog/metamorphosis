@@ -10,7 +10,7 @@ it("theme on change works", () => {
 	const onChange = vi.fn(() => { })
 
 	theme.on("change", onChange)
-	theme.set("gray", new ControlVar(Units.num, 0))
+	theme.set("key", "gray", new ControlVar(Units.num, 0))
 	expect(onChange.mock.calls.length).to.equal(1)
 })
 // todo more tests

@@ -1,7 +1,7 @@
 import { keys } from "@alanscodelog/utils/keys"
 
 import { Base } from "./Base.js"
-import type { ControlVar } from "./ControlVar.js"
+import { type ControlVar } from "./ControlVar.js"
 import { InterpolatedVars } from "./InterpolatedVars.js"
 import { escapeKey } from "./utils.js"
 
@@ -28,7 +28,7 @@ export class Theme<TValues extends Record<string, InterpolatedVars<any> | Contro
 	constructor(value: TValues, opts: Partial<Theme<TValues>["options"]> = {}) {
 		super()
 		this.add(value)
-		this.setOpts(opts)
+		this.set("options", opts)
 		this.recompute(false)
 		this.ready = true
 	}
@@ -68,14 +68,40 @@ export class Theme<TValues extends Record<string, InterpolatedVars<any> | Contro
 		if (this.ready) { this.notify() }
 	}
 
-	set(key: string, value: InterpolatedVars<any> | ControlVar<any, any>): void {
-		if (this.ready) { this.value[key]?.removeDep(this) }
+	set(
+		/** Updates class configuration options. */
+		type: "options",
+		/** Partial options object configuration. */
+		value: Partial<Theme<TValues>["options"]>
+	): void
 
-		this.value[key as keyof TValues] = value as TValues[keyof TValues]
-		this._generateCss(this.css, key, this.options.escapeChar, value)
-		value.addDep(this)
+	set(
+		/** Changes or registers a single InterpolatedVar or ControlVar key mapping. */
+		type: "key",
+		/** The variable identifier string name. */
+		key: string,
+		/** The new control or interpolated variable wrapper instance. */
+		value: InterpolatedVars<any> | ControlVar<any, any>
+	): void
 
-		if (this.ready) { this.notify({ recompute: false }) }
+	set(type: "options" | "key", arg1: any, arg2?: any): void {
+		if (type === "options") {
+			this.setOpts(arg1)
+			return
+		}
+
+		if (type === "key") {
+			const key = arg1 as string
+			const value = arg2 as InterpolatedVars<any> | ControlVar<any, any>
+
+			if (this.ready) { this.value[key]?.removeDep(this) }
+
+			this.value[key as keyof TValues] = value as TValues[keyof TValues]
+			this._generateCss(this.css, key, this.options.escapeChar, value)
+			value.addDep(this)
+
+			if (this.ready) { this.notify({ recompute: false }) }
+		}
 	}
 
 	protected notify({ recompute = true }: { recompute?: boolean } = {}): void {
