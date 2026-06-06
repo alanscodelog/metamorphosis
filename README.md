@@ -35,7 +35,7 @@ const padding = new InterpolatedVars("padding",
 const white = new ControlVar(Units.rgb, { r: 255, g: 255, b: 255 })
 const black = new ControlVar(Units.rgb, { r: 0, g: 0, b: 0 })
 
-const grays = new InterpolatedVars("gray", Units.rgb, [white, black],
+const grays = new InterpolatedVars("gray", Units.rgb, [white, black], undefined,
 	{
 		// custom percentages
 		steps: [0, 0.2, 0.8, 1],
@@ -55,10 +55,10 @@ const red = new InterpolatedVars("red", Units.rgb, [
 
 // with custom stops
 const reds = new InterpolatedVars("red", Units.rgb, [
-	[0, lightRed],
-	[0.25, saturatedMiddleRed],
-	[0.75, darkRed],
-])
+	lightRed,
+	saturatedMiddleRed,
+	darkRed,
+], [0, 0.25, 0.75])
 
 
 const theme = new Theme({
@@ -114,7 +114,7 @@ const grays3 = new InterpolatedVars("gray", customRgbFormatter, [white, black])
 
 // import Color from "colorjs.io"
 
-const grays4 = new InterpolatedVars("gray", Units.rgb, [white, black], {
+const grays4 = new InterpolatedVars("gray", Units.rgb, [white, black], undefined, {
 	interpolator: ({ percent, state, start, end }) => {
 		const key = start.css + end.css
 		// re/create state if at start or if key switched (due to

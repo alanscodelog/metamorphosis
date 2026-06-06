@@ -3,7 +3,7 @@ import { isBlank } from "@alanscodelog/utils/isBlank"
 import { Base } from "./Base.js"
 import type { ControlVar } from "./ControlVar.js"
 import { getTotalSteps } from "./internal.js"
-import type { InterpolatedVarsOptions, StopEntry, Value } from "./types.js"
+import type { InterpolatedVarsOptions } from "./types.js"
 import { defaultKeyNamer, lerp } from "./utils.js"
 
 
@@ -46,18 +46,18 @@ const getStepPercent = (percent: number, startPercent: number, endPercent: numbe
  *
  * ```ts
  *	// positions should be in a 0-1 percentage range
- * const interpolated = new InterpolatedVars("spacing", Units.px, [[0, v1], [0.2, v2], [1, v3]])
+ * const interpolated = new InterpolatedVars("spacing", Units.px, [v1, v2, v3], [0, 0.2, 1])
  * ```
- *
  *
  * You can change interpolation control variables and any options using `set`:
  *
  * ```ts
- * interpolated.set("values", [vOther1, vOther2, vOther3])
+ * interpolated.set("values-stops", [vOther1, vOther2, vOther3], undefined)
+ * interpolated.set("values-stops", [vOther1, vOther2, vOther3], [0, 0.2, 1])
  * interpolated.set("options", {steps: 20})
+ * interpolated.set("stop", currentIndex, newPercent) // will re-sort after
  * ```
  */
-
 export class InterpolatedVars<
 	TUnit extends Record<string, any> = Record<string, any>,
 > extends Base {
@@ -65,7 +65,9 @@ export class InterpolatedVars<
 
 	unit: (value: TUnit) => string
 
-	values!: Value<TUnit>
+	values: ControlVar<any, TUnit>[] = []
+
+	stops: number[] | undefined = undefined
 
 	ready: boolean = false
 
@@ -86,7 +88,8 @@ export class InterpolatedVars<
 	constructor(
 		name: string,
 		unit: (value: TUnit) => string,
-		values: Value<TUnit>,
+		values: ControlVar<any, TUnit>[],
+		stops?: number[],
 		options: Partial<InterpolatedVarsOptions<ControlVar<any, TUnit>>> = {}
 	) {
 		super()
@@ -94,41 +97,114 @@ export class InterpolatedVars<
 
 		this.name = name
 		this.unit = unit
-		this.set(values)
-		this.setOpts(options)
+
+		this.set("values-stops", values, stops)
+		this.set("options", options)
+
 		this.ready = true
 		this.notify()
 	}
 
-	setOpts(value: Partial<InterpolatedVarsOptions<ControlVar<any, TUnit>>>): void {
-		this.options = { ...this.options, ...value }
-		if (this.ready) { this.notify() }
+	set(
+		/** The property configuration to update. */
+		type: "values-stops",
+		/** The new control variables array. */
+		values: ControlVar<any, TUnit>[],
+		/** The new explicit stops array, or undefined to switch to even spacing. */
+		stops?: number[] | undefined
+	): void
+
+	set(
+		/** Targets a specific stop position to change. */
+		type: "stop",
+		/** The target array index of the stop to modify. Values will get resorted after setting. */
+		index: number,
+		/** The new position value (0 to 1) for the stop. */
+		value: number
+	): void
+
+	set(
+		/** Updates class configuration options. */
+		type: "options",
+		/** Partial options object. */
+		value: Partial<InterpolatedVarsOptions<ControlVar<any, TUnit>>>
+	): void
+
+	set(type: "values-stops" | "stop" | "options", arg1: any, arg2?: any): void {
+		if (type === "options") {
+			this.options = { ...this.options, ...arg1 }
+			if (this.ready) { this.notify() }
+			return
+		}
+
+		if (type === "stop") {
+			const index = arg1 as number
+			const newPosition = arg2 as number
+
+			if (this.stops === undefined) {
+				throw new Error("Cannot update position on evenly spaced stops. Set values-stops with positions first.")
+			}
+			if (index < 0 || index >= this.stops.length) {
+				throw new Error(`Index ${index} is out of bounds.`)
+			}
+			if (newPosition < 0 || newPosition > 1) {
+				throw new Error("Stop percentage must be expressed in a value from 0 to 1.")
+			}
+
+			this.stops[index] = newPosition
+			this.sortStopsAndValues()
+
+			if (this.ready) { this.notify() }
+			return
+		}
+
+		if (type === "values-stops") {
+			const nextValues = arg1 as ControlVar<any, TUnit>[]
+			const nextStops = arg2 as number[] | undefined
+
+			this.checkStopsCorrectness(nextValues, nextStops)
+
+			if (this.ready) {
+				for (const v of this.values) {
+					v?.removeDep(this)
+				}
+			}
+
+			this.values = [...nextValues]
+			this.stops = nextStops ? [...nextStops] : undefined
+
+			for (const v of this.values) {
+				v.addDep(this)
+			}
+
+			if (this.stops !== undefined) {
+				this.sortStopsAndValues()
+			}
+
+			if (this.ready) { this.notify() }
+		}
 	}
 
-	set(value: Value<TUnit>): void {
-		// :/ https://github.com/microsoft/TypeScript/issues/50652
-		type Stop = StopEntry<TUnit>
 
-		const hasStops = Array.isArray(value[0])
-		if (this.ready) {
-			for (const val of this.values) {
-				const v = hasStops ? (val as Stop)[1] : val as ControlVar<any, TUnit>
-				v?.removeDep(this)
-			}
+	protected checkStopsCorrectness(
+		values: ControlVar<any, TUnit>[],
+		stops: number[] | undefined
+	): void {
+		if (stops === undefined) return
+		if (stops.length !== values.length) {
+			throw new Error("Stops array must be the same length as the values array.")
 		}
-		if (hasStops && (value as Stop[]).find(entry => entry[0] > 1) !== undefined) {
-			throw new Error("Stop Entry percentage must be expressed in a value from 0 to 1.")
+		if (stops.find(entry => entry > 1 || entry < 0) !== undefined) {
+			throw new Error("Stop percentage must be expressed in a value from 0 to 1.")
 		}
+	}
 
-		this.values = hasStops
-			? ([...value] as Stop[]).sort((a, b) => a[0] - b[0])
-			: value
-		for (const val of this.values) {
-			const v = hasStops ? (val as Stop)[1] : val as ControlVar<any, TUnit>
-			v.addDep(this)
-		}
-
-		if (this.ready) { this.notify() }
+	protected sortStopsAndValues(): void {
+		if (this.stops === undefined) return
+		const combined = this.values.map((v, i) => ({ v, s: this.stops![i] }))
+		combined.sort((a, b) => a.s - b.s)
+		this.values = combined.map(item => item.v)
+		this.stops = combined.map(item => item.s)
 	}
 
 	protected notify(): void {
@@ -141,8 +217,8 @@ export class InterpolatedVars<
 		const interpolatedRes: Record<string, string> = {}
 		const steps = this.options.steps
 		const totalSteps = getTotalSteps(steps)
-		const { values, name } = this
-		const hasStops = Array.isArray(values[0])
+		const { values, stops, name } = this
+		const hasStops = stops !== undefined
 		const lastStopIndex = values.length - 1
 		const nonStopStepPercent = lastStopIndex === 0 ? 0 : 1 / lastStopIndex // avoid division by 0
 		const state = {}
@@ -165,13 +241,13 @@ export class InterpolatedVars<
 					stopIndex < values.length - 1
 				) {
 					stopIndex++
-					startPercent = (values[stopIndex] as any[])[0]
+					startPercent = stops[stopIndex]
 					nextStopIndex = Math.min(stopIndex + 1, lastStopIndex)
-					endPercent = (values[nextStopIndex] as StopEntry<TUnit>)[0]
+					endPercent = stops[nextStopIndex]
 				}
 
-				startVal = (values[stopIndex] as StopEntry<TUnit>)[1]
-				endVal = (values[nextStopIndex] as StopEntry<TUnit>)[1]
+				startVal = values[stopIndex]
+				endVal = values[nextStopIndex]
 				percent = getStepPercent(percent, startPercent, endPercent)
 			} else {
 				const startValIndex = Math.floor(percent * (lastStopIndex))
@@ -179,8 +255,8 @@ export class InterpolatedVars<
 				startPercent = startValIndex * nonStopStepPercent
 				endPercent = endValIndex * nonStopStepPercent
 				percent = getStepPercent(percent, startPercent, endPercent)
-				startVal = values[startValIndex] as ControlVar<any, TUnit>
-				endVal = values[endValIndex] as ControlVar<any, TUnit>
+				startVal = values[startValIndex]
+				endVal = values[endValIndex]
 			}
 
 			const keyName = this.options.keyName({ i, steps, totalSteps, name: this.name, keyLimit: this.options.keyLimit, separator: this.options.separator })

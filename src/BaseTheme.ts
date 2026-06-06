@@ -46,7 +46,7 @@ export const createTailwindColor = (name: string, stops: (string)[], opts: Parti
 		const control = new ControlVar<Units.Lch>(Units.oklch, unsafeColorToOklch(stop))
 		controls.push(control)
 	}
-	return new InterpolatedVars(name, Units.oklch, controls as any, { ...tailwindColorOpts, ...opts })
+	return new InterpolatedVars(name, Units.oklch, controls as any, undefined, { ...tailwindColorOpts, ...opts })
 }
 
 // for now just copies the tailwind colors

@@ -29,9 +29,3 @@ export type InterpolatedVarsOptions<T extends ControlVar<any, any> = ControlVar<
 	keyLimit: number
 }
 
-
-export type StopEntry<TUnit extends Record<string, any>> = [percent: number, entry: ControlVar<any, TUnit>]
-
-export type Value<
-	TUnit extends Record<string, any>,
-> = ControlVar <any, TUnit> [] | StopEntry <TUnit> []

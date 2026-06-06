@@ -10,7 +10,7 @@ import { paddedKeyNamer } from "../src/utils.js"
 it("simple interpolation with one variable", () => {
 	const v1 = new ControlVar(Units.num, 0)
 
-	const test = new InterpolatedVars("test", Units.num, [v1], { steps: 11 })
+	const test = new InterpolatedVars("test", Units.num, [v1], undefined, { steps: 11 })
 
 	expect(test.value[0]._).to.equal(0)
 	expect(test.value[10]._).to.equal(0)
@@ -19,7 +19,7 @@ it("simple interpolation with two variables", () => {
 	const v1 = new ControlVar(Units.num, 0)
 	const v2 = new ControlVar(Units.num, 100)
 
-	const test = new InterpolatedVars("test", Units.num, [v1, v2], { steps: 11 })
+	const test = new InterpolatedVars("test", Units.num, [v1, v2], undefined, { steps: 11 })
 
 	expect(test.value[0]._).to.equal(0)
 	expect(test.value[5]._).to.equal(50)
@@ -29,7 +29,7 @@ it("simple interpolation with two stops", () => {
 	const v1 = new ControlVar(Units.num, 0)
 	const v2 = new ControlVar(Units.num, 100)
 
-	const test = new InterpolatedVars("test", Units.num, [[0, v1], [1, v2]], { steps: 11 })
+	const test = new InterpolatedVars("test", Units.num, [v1, v2], [0, 1], { steps: 11 })
 
 	expect(test.value[0]._).to.equal(0)
 	expect(test.value[5]._).to.equal(50)
@@ -39,8 +39,9 @@ it("simple interpolation with two stops with irregular stops", () => {
 	const v1 = new ControlVar(Units.num, 0)
 	const v2 = new ControlVar(Units.num, 100)
 
-	const test = new InterpolatedVars("test", Units.num, [[0.8, v2], [0.2, v1]], { steps: 11 })
-	expect(test.values).to.deep.equal([[0.2, v1], [0.8, v2]])
+	const test = new InterpolatedVars("test", Units.num, [v2, v1], [0.8, 0.2], { steps: 11 })
+	expect(test.values).to.deep.equal([v1, v2])
+	expect(test.stops).to.deep.equal([0.2, 0.8])
 	expect(test.value[0]._).to.equal(0)
 	expect(test.value[5]._).to.equal(50)
 	expect(test.value[10]._).to.equal(100)
@@ -50,7 +51,7 @@ it("interpolation with multiple stops", () => {
 	const v2 = new ControlVar(Units.num, 100)
 	const v3 = new ControlVar(Units.num, 0)
 
-	const test = new InterpolatedVars("test", Units.num, [[0, v1], [0.2, v2], [1, v3]], { steps: 11 })
+	const test = new InterpolatedVars("test", Units.num, [v1, v2, v3], [0, 0.2, 1], { steps: 11 })
 
 	expect(test.value[0]._).to.equal(0)
 	expect(test.value[1]._).to.equal(50)
@@ -62,10 +63,10 @@ it("object interpolation", () => {
 	const white = new ControlVar(Units.rgb, { r: 255, g: 255, b: 255 })
 	const black = new ControlVar(Units.rgb, { r: 0, g: 0, b: 0 })
 
-	const grays = new InterpolatedVars("gray", Units.rgb, [white, black], { keyName: paddedKeyNamer() })
+	const grays = new InterpolatedVars("gray", Units.rgb, [white, black], undefined, { keyName: paddedKeyNamer() })
 	expect(Object.keys(grays.value).length).to.equal(10)
 
-	grays.setOpts({ steps: 3, keyName: paddedKeyNamer(3 * 500) })
+	grays.set("options", { steps: 3, keyName: paddedKeyNamer(3 * 500) })
 	expect(grays.value).to.deep.equal([
 		{ r: 255, g: 255, b: 255 },
 		{ r: 255 / 2, g: 255 / 2, b: 255 / 2 },
@@ -90,12 +91,12 @@ it("works with optional alpha units", () => {
 
 	// Interpolated vars should type error if [var1, wrongvar2] is passed
 	// but not error if being passed [var1, var2] with alpha values
-	const grays = new InterpolatedVars("gray", Units.rgb, [var1, var2], { steps: 3, keyName: paddedKeyNamer() })
+	const grays = new InterpolatedVars("gray", Units.rgb, [var1, var2], undefined, { steps: 3, keyName: paddedKeyNamer() })
 })
 it("example - alias interpolation", () => {
 	const color = new ControlVar(Units.cssVar, "red")
 
-	const alias = new InterpolatedVars("alias", Units.cssVar, [color], {
+	const alias = new InterpolatedVars("alias", Units.cssVar, [color], undefined, {
 		interpolator: ({ keyName, name, start }) => ({ _: keyName.replace(name, start.value._) }),
 		keyName: paddedKeyNamer(),
 	})
