@@ -78,15 +78,12 @@ export const roundIfNeeded = (roundTo: number | false, num: number | any): typeo
 /**
  * Multiplies each step by the start value.
  *
- * Useful when using array steps with custom percentages.
- *
  * For example:
  *
  * ```ts
  * const spacingControl = new ControlVar(Unit.rem, 1)
- * const spacingSteps = [0, 1, 2, 3]
  * const spacing = new InterpolatedVars("spacing", Unit.rem, [spacingControl], {
- * 	steps: spacingSteps,
+ * 	steps: 4,
  * 	interpolator: createNumericalInterpolator(scaleValue),
  * })
  * // spacing values are now [0rem, 1rem, 2rem, 3rem]
@@ -94,7 +91,7 @@ export const roundIfNeeded = (roundTo: number | false, num: number | any): typeo
  * // scales to [0rem, 2rem, 4rem, 6rem]
  * ```
  */
-export const scaleValue: NumericalInterpolator = ({ start, steps, step }) => Array.isArray(steps) ? (steps[step]) * start : (step * start)
+export const scaleValue: NumericalInterpolator = ({ start, step }) => step * start
 
 /** Lerps between the start and end values. */
 export const lerpValue: NumericalInterpolator = ({ start, end, percent }) => start + ((end - start) * percent)

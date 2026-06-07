@@ -37,8 +37,7 @@ const black = new ControlVar(Units.rgb, { r: 0, g: 0, b: 0 })
 
 const grays = new InterpolatedVars("gray", Units.rgb, [white, black], undefined,
 	{
-		// custom percentages
-		steps: [0, 0.2, 0.8, 1],
+		steps: 4,
 		keyName: paddedKeyNamer(1000), // gray-000
 	})
 

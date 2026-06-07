@@ -58,6 +58,7 @@ const getStepPercent = (percent: number, startPercent: number, endPercent: numbe
  * interpolated.set("stop", currentIndex, newPercent) // will re-sort after
  * ```
  */
+
 export class InterpolatedVars<
 	TUnit extends Record<string, any> = Record<string, any>,
 > extends Base {
@@ -228,9 +229,7 @@ export class InterpolatedVars<
 		let startPercent = -1
 		let endPercent = -1
 		for (let i = 0; i < totalSteps; i++) {
-			let percent = Array.isArray(steps)
-				? steps[i]
-				: (i) / (steps - 1)
+			let percent = (i) / (steps - 1)
 
 			let startVal: ControlVar<any, TUnit>, endVal: ControlVar<any, TUnit>
 
